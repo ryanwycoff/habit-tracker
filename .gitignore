@@ -1,6 +1,5 @@
 # Private files - do not commit
-TODO.md
-SCHEDULE.md
+SUMMARY.md
 config-private.js
 
 # OS files
@@ -13,3 +12,6 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Claude files
+.claude/
