@@ -1,0 +1,15 @@
+# Private files - do not commit
+TODO.md
+SCHEDULE.md
+config-private.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
