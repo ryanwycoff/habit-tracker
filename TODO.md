@@ -13,3 +13,5 @@
 12. create a habit for reviewing financials weekly. 
 13. optimize my habit schedule with all the new habits I've requested
 14. in my initial commit and push to github, I included TODO.md. I want to remove this from the remote branch and ignore it from future commits
+15. All my habit and schedule information should be hidden from the public and separate from the main html. Separate all info into a private file the habit tracker web page can reference for seeding all my initial habits and schedule details, once my local data is seeded, I can manipulate it freely on my iphone through the web interface. 
+16. password protect this entire project so I can expose it to the public while still being the only one to access it. it can be a simple single admin password as only I am the only user. 
