@@ -1,4 +1,4 @@
-1. for your information, everything works in google chrome on my iphone as well. but, I want my data to be safe, in case my google chrome data is lost. create a way to save and manipulate all the data from the app onto my local iphone instead of in browser storage. the local data should be updated live as I use the app. 
+1. I want my data to be safe, in case my browser data is lost. create a way to save and manipulate all the data from the app onto my local iphone instead of in browser storage. the local data should be updated live as I use the app. 
 2. Make sure all UI components fit perfectly into a portrait iPhone. I only want to be able to scroll the page up and down and see all UI components completely. 
 3. remove import button from bottom panel. 
 4. remove the "Up next" UI component
