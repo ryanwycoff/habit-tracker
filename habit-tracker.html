@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0;
+            background: #ffffff;
+            padding: 0;
+        }
+
+        /* Header */
+        h1 {
+            text-align: center;
+            color: #000000;
+            padding: 20px 16px 10px 16px;
+            font-size: 1.75em;
+            font-weight: 700;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e5e5;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 16px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .stat-label {
+            font-size: 0.75em;
+            color: #666666;
+            margin-top: 4px;
+        }
+
+        /* Controls */
+        .controls {
+            padding: 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .month-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .current-month {
+            font-size: 1.25em;
+            font-weight: 600;
+            color: #000000;
+        }
+
+        button {
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        button:active {
+            background: #333333;
+            transform: scale(0.97);
+        }
+
+        .month-nav button {
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+
+        /* Up Next & Overdue Sections */
+        .today-overview {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .overview-section {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .overview-section:last-child {
+            border-bottom: none;
+        }
+
+        .overview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .overview-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .overview-count {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #666666;
+            background: #f5f5f5;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .overview-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .overview-item {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 3px solid #000000;
+        }
+
+        .overview-item.overdue {
+            border-left-color: #000000;
+            background: #fafafa;
+        }
+
+        .overview-time {
+            font-size: 0.85em;
+            font-weight: 700;
+            color: #000000;
+            min-width: 70px;
+        }
+
+        .overview-habit {
+            font-size: 0.95em;
+            color: #000000;
+            flex: 1;
+            line-height: 1.3;
+        }
+
+        .overview-empty {
+            text-align: center;
+            color: #999999;
+            font-size: 0.9em;
+            padding: 20px;
+        }
+
+        .overview-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #000000;
+            flex-shrink: 0;
+        }
+
+        /* Calendar */
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            padding: 12px;
+            background: #ffffff;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            padding: 12px 4px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            color: #000000;
+            font-size: 0.85em;
+        }
+
+        .day-cell {
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 8px 4px;
+            min-height: 70px;
+            cursor: pointer;
+            background: #ffffff;
+            position: relative;
+            touch-action: manipulation;
+        }
+
+        .day-cell:active {
+            background: #f5f5f5;
+        }
+
+        .day-cell.empty {
+            background: #fafafa;
+            border-color: #f0f0f0;
+            cursor: default;
+        }
+
+        .day-cell.empty:active {
+            background: #fafafa;
+        }
+
+        .day-cell.selected {
+            border-color: #000000;
+            background: #f5f5f5;
+            border-width: 2px;
+        }
+
+        .day-number {
+            font-weight: 700;
+            font-size: 1em;
+            color: #000000;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .day-cell.today .day-number {
+            background: #000000;
+            color: #ffffff;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin: 0 auto 6px auto;
+        }
+
+        .completion-indicator {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 6px;
+        }
+
+        .completion-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #d0d0d0;
+        }
+
+        .completion-dot.completed {
+            background: #000000;
+        }
+
+        /* Habit Panel */
+        .habit-panel {
+            background: #ffffff;
+            padding: 16px;
+            margin-bottom: 80px;
+        }
+
+        .habit-panel h2 {
+            color: #000000;
+            margin-bottom: 16px;
+            font-size: 1.5em;
+            font-weight: 700;
+            padding-left: 4px;
+        }
+
+        .selected-date {
+            font-size: 1.1em;
+            color: #000000;
+            margin-bottom: 16px;
+            font-weight: 600;
+            padding-left: 4px;
+        }
+
+        /* Management Menu */
+        .management-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-top: 2px solid #e5e5e5;
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            display: flex;
+            gap: 8px;
+            z-index: 50;
+        }
+
+        .management-menu button {
+            flex: 1;
+            padding: 12px 8px;
+            font-size: 13px;
+            background: #f5f5f5;
+            color: #000000;
+            border: 1px solid #e5e5e5;
+        }
+
+        .management-menu button:active {
+            background: #e5e5e5;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ffffff;
+            z-index: 200;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        .settings-header {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .settings-header h2 {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .settings-content {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .settings-section {
+            margin-bottom: 32px;
+        }
+
+        .settings-section h3 {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        /* Habit Editor */
+        .habit-editor-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .habit-edit-item {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 14px;
+            border: 2px solid #e5e5e5;
+        }
+
+        .habit-edit-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .habit-edit-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #ffffff;
+        }
+
+        .habit-edit-input:focus {
+            outline: none;
+            border-color: #000000;
+        }
+
+        .habit-edit-category {
+            padding: 10px;
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #ffffff;
+        }
+
+        .btn-delete-habit {
+            background: #000000;
+            color: #ffffff;
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        .btn-add-habit {
+            width: 100%;
+            padding: 14px;
+            background: #000000;
+            color: #ffffff;
+            margin-top: 12px;
+        }
+
+        /* Schedule Editor */
+        .schedule-editor {
+            display: grid;
+            gap: 12px;
+        }
+
+        .schedule-edit-item {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 12px;
+            border: 2px solid #e5e5e5;
+        }
+
+        .schedule-edit-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .time-input {
+            width: 90px;
+            padding: 8px;
+            border: 2px solid #e5e5e5;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #ffffff;
+            font-weight: 600;
+        }
+
+        .habit-input {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #e5e5e5;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #ffffff;
+        }
+
+        .btn-delete-schedule {
+            background: #000000;
+            color: #ffffff;
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-add-schedule {
+            width: 100%;
+            padding: 10px;
+            background: #000000;
+            color: #ffffff;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .day-selector {
+            margin-bottom: 16px;
+        }
+
+        .day-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Data Management */
+        .data-actions {
+            display: grid;
+            gap: 12px;
+        }
+
+        .data-action-item {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid #e5e5e5;
+        }
+
+        .data-action-item h4 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+
+        .data-action-item p {
+            font-size: 0.9em;
+            color: #666666;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .data-action-item button {
+            width: 100%;
+        }
+
+        /* Category Management */
+        .category-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .category-item {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 14px;
+            border: 2px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #ffffff;
+            font-weight: 600;
+        }
+
+        .category-input:focus {
+            outline: none;
+            border-color: #000000;
+        }
+
+        .category-badge {
+            background: #000000;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .category-usage {
+            font-size: 12px;
+            color: #666666;
+            white-space: nowrap;
+        }
+
+        .btn-delete-category {
+            background: #000000;
+            color: #ffffff;
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-add-category {
+            width: 100%;
+            padding: 14px;
+            background: #000000;
+            color: #ffffff;
+            margin-top: 12px;
+        }
+
+        .category-warning {
+            background: #f5f5f5;
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #666666;
+            line-height: 1.4;
+        }
+
+        /* Close button */
+        .btn-close {
+            background: #f5f5f5;
+            color: #000000;
+            padding: 8px 16px;
+            border: 1px solid #e5e5e5;
+        }
+
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .view-toggle button {
+            flex: 1;
+            padding: 14px;
+            background: #f5f5f5;
+            color: #000000;
+            border: 2px solid #e5e5e5;
+            font-size: 14px;
+        }
+
+        .view-toggle button.active {
+            background: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .view-toggle button:active {
+            transform: scale(0.98);
+        }
+
+        /* Schedule View */
+        .schedule-view {
+            display: none;
+        }
+
+        .schedule-view.active {
+            display: block;
+        }
+
+        .schedule-timeline {
+            position: relative;
+            padding-left: 80px;
+        }
+
+        .schedule-item {
+            position: relative;
+            margin-bottom: 12px;
+            padding: 14px;
+            background: #ffffff;
+            border-radius: 10px;
+            border: 2px solid #e5e5e5;
+            border-left: 4px solid #000000;
+        }
+
+        .schedule-time {
+            position: absolute;
+            left: -80px;
+            top: 14px;
+            font-weight: 700;
+            color: #000000;
+            font-size: 0.9em;
+            width: 70px;
+            text-align: right;
+        }
+
+        .schedule-habit {
+            font-size: 0.95em;
+            color: #000000;
+            line-height: 1.4;
+        }
+
+        .schedule-item.completed {
+            opacity: 0.4;
+            border-left-color: #666666;
+        }
+
+        .schedule-item.completed .schedule-time {
+            color: #666666;
+        }
+
+        /* Habit List */
+        .habit-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .habit-item {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid #e5e5e5;
+        }
+
+        .habit-item:active {
+            background: #fafafa;
+        }
+
+        .habit-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .habit-checkbox {
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            accent-color: #000000;
+            flex-shrink: 0;
+        }
+
+        .habit-name {
+            font-weight: 600;
+            font-size: 1em;
+            color: #000000;
+            flex: 1;
+            line-height: 1.3;
+        }
+
+        .habit-category {
+            background: #000000;
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .habit-notes {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+            font-size: 15px;
+            background: #fafafa;
+        }
+
+        .habit-notes:focus {
+            outline: none;
+            border-color: #000000;
+            background: #ffffff;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .modal-content h3 {
+            color: #000000;
+            margin-bottom: 16px;
+            font-size: 1.3em;
+        }
+
+        .modal-content p {
+            color: #333333;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-buttons button {
+            min-width: 80px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Safe area for iPhone */
+        @supports (padding: max(0px)) {
+            body {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+
+        /* iPhone specific optimizations */
+        @media (max-width: 428px) {
+            h1 {
+                font-size: 1.5em;
+                padding: 16px 12px 10px 12px;
+            }
+
+            .stats-bar {
+                padding: 12px;
+            }
+
+            .stat-value {
+                font-size: 1.3em;
+            }
+
+            .stat-label {
+                font-size: 0.7em;
+            }
+
+            .calendar {
+                padding: 8px;
+                gap: 3px;
+            }
+
+            .day-cell {
+                min-height: 60px;
+                padding: 6px 2px;
+            }
+
+            .day-number {
+                font-size: 0.9em;
+            }
+
+            .completion-dot {
+                width: 5px;
+                height: 5px;
+            }
+
+            .schedule-timeline {
+                padding-left: 70px;
+            }
+
+            .schedule-time {
+                left: -70px;
+                width: 60px;
+                font-size: 0.8em;
+            }
+
+            .schedule-habit {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Habit Tracker</h1>
+        
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="monthCompletion">0%</div>
+                <div class="stat-label">Month Completion</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="currentStreak">0</div>
+                <div class="stat-label">Current Streak</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalHabits">0</div>
+                <div class="stat-label">Total Habits Completed</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="month-nav">
+                <button onclick="previousMonth()">← Previous</button>
+                <span class="current-month" id="currentMonth"></span>
+                <button onclick="nextMonth()">Next →</button>
+            </div>
+        </div>
+
+        <div class="today-overview" id="todayOverview">
+            <!-- Overdue Section -->
+            <div class="overview-section" id="overdueSection" style="display: none;">
+                <div class="overview-header">
+                    <div class="overview-title">⚠️ Overdue</div>
+                    <div class="overview-count" id="overdueCount">0</div>
+                </div>
+                <div class="overview-list" id="overdueList"></div>
+            </div>
+
+            <!-- Up Next Section -->
+            <div class="overview-section" id="upNextSection">
+                <div class="overview-header">
+                    <div class="overview-title">Up Next</div>
+                    <div class="overview-count" id="upNextCount">0</div>
+                </div>
+                <div class="overview-list" id="upNextList"></div>
+            </div>
+        </div>
+
+        <div class="calendar" id="calendar"></div>
+
+        <div class="habit-panel">
+            <h2>Daily Habits & Schedule</h2>
+            <div class="selected-date" id="selectedDate">Select a date to track habits</div>
+            <div class="view-toggle" id="viewToggle" style="display: none;">
+                <button onclick="showHabitView()" id="habitViewBtn" class="active">Habit Checklist</button>
+                <button onclick="showScheduleView()" id="scheduleViewBtn">Time Schedule</button>
+            </div>
+            <div class="habit-list" id="habitList"></div>
+            <div class="schedule-view" id="scheduleView"></div>
+        </div>
+
+        <div class="management-menu">
+            <button onclick="openSettings()">Manage</button>
+            <button onclick="exportData()">Export</button>
+            <button onclick="document.getElementById('importFile').click()">Import</button>
+        </div>
+
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-header">
+                <h2>Manage Data</h2>
+                <button class="btn-close" onclick="closeSettings()">Done</button>
+            </div>
+            <div class="settings-content">
+                
+                <!-- Category Management -->
+                <div class="settings-section">
+                    <h3>Manage Categories</h3>
+                    <div class="category-list" id="categoryList"></div>
+                    <button class="btn-add-category" onclick="addNewCategory()">+ Add New Category</button>
+                    <div class="category-warning">
+                        💡 Categories help organize your habits. Renaming a category updates all habits using it. Deleting a category will change affected habits to "Uncategorized".
+                    </div>
+                </div>
+
+                <!-- Habit Editor -->
+                <div class="settings-section">
+                    <h3>Edit Habits</h3>
+                    <div class="habit-editor-list" id="habitEditorList"></div>
+                    <button class="btn-add-habit" onclick="addNewHabit()">+ Add New Habit</button>
+                </div>
+
+                <!-- Schedule Editor -->
+                <div class="settings-section">
+                    <h3>Edit Schedule</h3>
+                    <div class="day-selector">
+                        <select id="scheduleEditDay" onchange="renderScheduleEditor()">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="schedule-editor" id="scheduleEditorList"></div>
+                    <button class="btn-add-schedule" onclick="addNewScheduleItem()">+ Add Schedule Item</button>
+                </div>
+
+                <!-- Data Management -->
+                <div class="settings-section">
+                    <h3>Data Management</h3>
+                    <div class="data-actions">
+                        <div class="data-action-item">
+                            <h4>View All Data</h4>
+                            <p>See all your tracked habits and notes in JSON format</p>
+                            <button onclick="viewAllData()">View Data</button>
+                        </div>
+                        <div class="data-action-item">
+                            <h4>Export Backup</h4>
+                            <p>Download all your data as a JSON file to your device</p>
+                            <button onclick="exportData()">Export Data</button>
+                        </div>
+                        <div class="data-action-item">
+                            <h4>Import Backup</h4>
+                            <p>Restore data from a previously exported file</p>
+                            <button onclick="document.getElementById('importFile').click()">Import Data</button>
+                        </div>
+                        <div class="data-action-item">
+                            <h4>Clear All Data</h4>
+                            <p>Permanently delete all tracked habits and notes</p>
+                            <button onclick="confirmClear()">Clear All Data</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="clearModal">
+        <div class="modal-content">
+            <h3>Clear All Data?</h3>
+            <p>This will permanently delete all your tracked habits and notes. This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button onclick="closeModal()">Cancel</button>
+                <button class="btn-clear" onclick="clearAllData()">Yes, Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="dataViewModal">
+        <div class="modal-content" style="max-width: 90%; max-height: 80vh; overflow-y: auto;">
+            <h3>All Saved Data</h3>
+            <pre id="dataViewContent" style="background: #f5f5f5; padding: 16px; border-radius: 8px; font-size: 12px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;"></pre>
+            <div class="modal-buttons">
+                <button onclick="closeDataView()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global categories array
+        let categories = ['Climbing', 'Fitness', 'Recreation', 'Grooming', 'Nutrition', 'Supplements'];
+
+        const scheduleByDay = {
+            'Monday': [
+                { time: '4:30 AM', habit: 'Wake Up & Hydrate' },
+                { time: '4:40 AM', habit: 'Dead Hang (3 sets)' },
+                { time: '4:50 AM', habit: 'Beard Oil + Microneedling' },
+                { time: '5:00 AM', habit: 'Pre-Workout Supplements' },
+                { time: '5:05 AM', habit: 'Workout: Upper Body & Climbing (80 min)' },
+                { time: '6:25 AM', habit: 'Shower & Hair Styling' },
+                { time: '6:45 AM', habit: 'Meal 1: Eggs & Oats + Morning Supplements' },
+                { time: '7:00 AM', habit: 'Leave for Work (1 hour commute)' },
+                { time: '8:00 AM', habit: 'Arrive at Work' },
+                { time: '11:30 AM', habit: 'Meal 2: Chicken & Greens' },
+                { time: '2:30 PM', habit: 'Meal 3: Turkey & Broccoli' },
+                { time: '5:00 PM', habit: 'Leave Work (1 hour commute)' },
+                { time: '6:00 PM', habit: 'Arrive Home' },
+                { time: '6:15 PM', habit: 'Meal 4: Protein Shake' },
+                { time: '6:45 PM', habit: 'Evening Relax/Activity' },
+                { time: '8:00 PM', habit: 'Meal 5: Salmon & Asparagus' },
+                { time: '9:00 PM', habit: 'Evening Supplements + Beard Oil' },
+                { time: '9:30 PM', habit: 'Bed' }
+            ],
+            'Tuesday': [
+                { time: '4:30 AM', habit: 'Wake Up & Hydrate' },
+                { time: '4:40 AM', habit: 'Dead Hang (3 sets)' },
+                { time: '4:50 AM', habit: 'Beard Oil Application' },
+                { time: '5:00 AM', habit: 'Pre-Workout Supplements' },
+                { time: '5:05 AM', habit: 'Workout: Legs & Grip (70 min)' },
+                { time: '6:15 AM', habit: 'Shower & Hair Styling' },
+                { time: '6:40 AM', habit: 'Meal 1: Eggs & Oats + Morning Supplements' },
+                { time: '7:00 AM', habit: 'Leave for Work (1 hour commute)' },
+                { time: '8:00 AM', habit: 'Arrive at Work' },
+                { time: '11:30 AM', habit: 'Meal 2: Chicken & Greens' },
+                { time: '2:30 PM', habit: 'Meal 3: Turkey & Broccoli' },
+                { time: '5:00 PM', habit: 'Leave Work (1 hour commute)' },
+                { time: '6:00 PM', habit: 'Arrive Home' },
+                { time: '6:15 PM', habit: 'Meal 4: Protein Shake' },
+                { time: '6:30 PM', habit: 'Manscaping: Chest & Stomach' },
+                { time: '7:00 PM', habit: 'Golf Simulator (60 min)' },
+                { time: '8:15 PM', habit: 'Meal 5: Salmon & Vegetables' },
+                { time: '9:00 PM', habit: 'Evening Supplements + Beard Oil' },
+                { time: '9:30 PM', habit: 'Bed' }
+            ],
+            'Wednesday': [
+                { time: '4:30 AM', habit: 'Wake Up & Hydrate' },
+                { time: '4:40 AM', habit: 'Dead Hang (3 sets)' },
+                { time: '4:50 AM', habit: 'Beard Oil Application' },
+                { time: '5:00 AM', habit: 'Yoga Session (60 min)' },
+                { time: '6:00 AM', habit: 'Shower & Hair Styling' },
+                { time: '6:35 AM', habit: 'Meal 1: Eggs & Oats + Morning Supplements' },
+                { time: '7:00 AM', habit: 'Leave for Work (1 hour commute)' },
+                { time: '8:00 AM', habit: 'Arrive at Work' },
+                { time: '11:30 AM', habit: 'Meal 2: Chicken & Greens' },
+                { time: '2:30 PM', habit: 'Meal 3: Turkey & Vegetables' },
+                { time: '5:00 PM', habit: 'Leave Work (1 hour commute)' },
+                { time: '6:00 PM', habit: 'Arrive Home' },
+                { time: '6:15 PM', habit: 'Meal 4: Protein Shake' },
+                { time: '6:30 PM', habit: 'Manscaping: Back & Shoulders (every 2 weeks)' },
+                { time: '7:15 PM', habit: 'Light Walk (30 min)' },
+                { time: '8:00 PM', habit: 'Meal 5: Fish & Vegetables' },
+                { time: '8:30 PM', habit: 'Foam Rolling & Stretching' },
+                { time: '9:00 PM', habit: 'Evening Supplements + Beard Oil' },
+                { time: '9:30 PM', habit: 'Bed' }
+            ],
+            'Thursday': [
+                { time: '4:30 AM', habit: 'Wake Up & Hydrate' },
+                { time: '4:40 AM', habit: 'Dead Hang (3 sets)' },
+                { time: '4:50 AM', habit: 'Beard Oil Application' },
+                { time: '5:00 AM', habit: 'Pre-Workout Supplements' },
+                { time: '5:05 AM', habit: 'Workout: Climbing & Full Body (80 min)' },
+                { time: '6:25 AM', habit: 'Shower & Hair Styling' },
+                { time: '6:45 AM', habit: 'Meal 1: Eggs & Oats + Morning Supplements' },
+                { time: '7:00 AM', habit: 'Leave for Work (1 hour commute)' },
+                { time: '8:00 AM', habit: 'Arrive at Work' },
+                { time: '11:30 AM', habit: 'Meal 2: Chicken & Greens' },
+                { time: '2:30 PM', habit: 'Meal 3: Turkey & Broccoli' },
+                { time: '5:00 PM', habit: 'Leave Work (1 hour commute)' },
+                { time: '6:00 PM', habit: 'Arrive Home' },
+                { time: '6:15 PM', habit: 'Meal 4: Protein Shake' },
+                { time: '6:45 PM', habit: 'Evening Relax/Hobby' },
+                { time: '8:00 PM', habit: 'Meal 5: Salmon & Vegetables' },
+                { time: '9:00 PM', habit: 'Evening Supplements + Beard Oil' },
+                { time: '9:30 PM', habit: 'Bed' }
+            ],
+            'Friday': [
+                { time: '4:30 AM', habit: 'Wake Up & Hydrate' },
+                { time: '4:40 AM', habit: 'Dead Hang (3 sets)' },
+                { time: '4:50 AM', habit: 'Beard Oil Application' },
+                { time: '5:00 AM', habit: 'Pre-Workout Supplements' },
+                { time: '5:05 AM', habit: 'Workout: Lower Body & Grip (70 min)' },
+                { time: '6:15 AM', habit: 'Shower & Hair Styling' },
+                { time: '6:40 AM', habit: 'Meal 1: Eggs & Oats + Morning Supplements' },
+                { time: '7:00 AM', habit: 'Leave for Work (1 hour commute)' },
+                { time: '8:00 AM', habit: 'Arrive at Work' },
+                { time: '11:30 AM', habit: 'Meal 2: Chicken & Greens' },
+                { time: '2:30 PM', habit: 'Meal 3: Turkey & Vegetables' },
+                { time: '5:00 PM', habit: 'Leave Work (1 hour commute)' },
+                { time: '6:00 PM', habit: 'Arrive Home' },
+                { time: '6:15 PM', habit: 'Meal 4: Protein Shake' },
+                { time: '6:30 PM', habit: 'Manscaping: Genitals, Butt & Legs' },
+                { time: '7:15 PM', habit: 'Golf Simulator (60 min)' },
+                { time: '8:30 PM', habit: 'Meal 5: Chicken & Vegetables (Refeed)' },
+                { time: '9:00 PM', habit: 'Evening Supplements + Beard Oil' },
+                { time: '10:00 PM', habit: 'Bed' }
+            ],
+            'Saturday': [
+                { time: '6:30 AM', habit: 'Wake Up & Hydrate' },
+                { time: '6:45 AM', habit: 'Dead Hang (3 sets)' },
+                { time: '6:55 AM', habit: 'Beard Oil + Microneedling' },
+                { time: '7:10 AM', habit: 'Meal 1: Eggs & Oats + Morning Supplements' },
+                { time: '8:00 AM', habit: 'Workout: Upper Body (70 min)' },
+                { time: '9:10 AM', habit: 'Shower & Hair Styling' },
+                { time: '10:00 AM', habit: 'Meal 2: Protein-rich Brunch' },
+                { time: '10:30 AM', habit: 'Errands/Activities' },
+                { time: '1:30 PM', habit: 'Meal 3: Lunch' },
+                { time: '2:30 PM', habit: 'Manscaping: Arms (every 2 weeks)' },
+                { time: '3:00 PM', habit: 'Free Time' },
+                { time: '5:00 PM', habit: 'Yoga Session (60 min)' },
+                { time: '6:30 PM', habit: 'Meal 4: Dinner' },
+                { time: '8:00 PM', habit: 'Meal 5: Light Evening Meal' },
+                { time: '9:00 PM', habit: 'Evening Supplements + Beard Oil' },
+                { time: '10:30 PM', habit: 'Bed' }
+            ],
+            'Sunday': [
+                { time: '7:00 AM', habit: 'Wake Up & Hydrate' },
+                { time: '7:15 AM', habit: 'Dead Hang (3 sets)' },
+                { time: '7:25 AM', habit: 'Beard Oil Application' },
+                { time: '7:30 AM', habit: 'Meal 1: Protein Breakfast + Supplements' },
+                { time: '8:30 AM', habit: 'Light Walk or Bike (45 min)' },
+                { time: '9:30 AM', habit: 'Shower & Full Grooming Session' },
+                { time: '10:30 AM', habit: 'Meal 2: Brunch' },
+                { time: '11:30 AM', habit: 'Stretching & Mobility Work' },
+                { time: '12:30 PM', habit: 'Meal Prep for Week (2 hours)' },
+                { time: '2:30 PM', habit: 'Golf Simulator (90 min)' },
+                { time: '4:30 PM', habit: 'Meal 3: Afternoon Meal' },
+                { time: '5:30 PM', habit: 'Relax/Entertainment' },
+                { time: '7:00 PM', habit: 'Meal 4: Dinner' },
+                { time: '8:30 PM', habit: 'Evening Supplements + Beard Oil' },
+                { time: '9:30 PM', habit: 'Bed' }
+            ]
+        };
+
+        const habits = [
+            { id: 'deadhang', name: 'Dead Hang (3 sets to failure)', category: 'Climbing', schedule: true },
+            { id: 'workout', name: 'Workout Complete', category: 'Fitness', schedule: true },
+            { id: 'climbing', name: 'Climbing Training', category: 'Climbing', schedule: true },
+            { id: 'golf', name: 'Golf Simulator', category: 'Recreation', schedule: true },
+            { id: 'yoga', name: 'Yoga Session', category: 'Fitness', schedule: true },
+            { id: 'beardoil', name: 'Beard Oil Application', category: 'Grooming', schedule: true },
+            { id: 'microneedling', name: 'Microneedling Session', category: 'Grooming', schedule: true },
+            { id: 'hairstyle', name: 'Hair Styling', category: 'Grooming', schedule: true },
+            { id: 'manscaping', name: 'Manscaping (Scheduled Area)', category: 'Grooming', schedule: true },
+            { id: 'meal1', name: 'Meal 1 - Breakfast', category: 'Nutrition', schedule: true },
+            { id: 'meal2', name: 'Meal 2 - Mid-Morning/Lunch', category: 'Nutrition', schedule: true },
+            { id: 'meal3', name: 'Meal 3 - Afternoon', category: 'Nutrition', schedule: true },
+            { id: 'meal4', name: 'Meal 4 - Post-Work', category: 'Nutrition', schedule: true },
+            { id: 'meal5', name: 'Meal 5 - Dinner', category: 'Nutrition', schedule: true },
+            { id: 'supplements_am', name: 'Morning Supplements', category: 'Supplements', schedule: true },
+            { id: 'supplements_pre', name: 'Pre-Workout Supplements', category: 'Supplements', schedule: true },
+            { id: 'supplements_post', name: 'Post-Workout Supplements', category: 'Supplements', schedule: true },
+            { id: 'supplements_pm', name: 'Evening Supplements', category: 'Supplements', schedule: true },
+        ];
+
+        let currentDate = new Date();
+        let selectedDate = null;
+
+        function initializeTracker() {
+            loadCategories();
+            loadHabits();
+            loadSchedule();
+            renderCalendar();
+            updateStats();
+            updateTodayOverview();
+        }
+
+        function updateTodayOverview() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const todayStr = today.toISOString().split('T')[0];
+            const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
+            
+            // Get today's schedule
+            const schedule = scheduleByDay[dayName] || [];
+            const data = getData(todayStr);
+            
+            // Parse current time
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            
+            // Find overdue and upcoming items
+            const overdue = [];
+            const upNext = [];
+            
+            schedule.forEach((item, index) => {
+                const itemMinutes = parseTimeToMinutes(item.time);
+                
+                if (itemMinutes === null) return;
+                
+                const isCompleted = isScheduleItemCompleted(item.habit, data);
+                
+                if (!isCompleted && itemMinutes < currentMinutes) {
+                    // Overdue - store with time difference for sorting
+                    overdue.push({ 
+                        ...item, 
+                        index,
+                        minutesLate: currentMinutes - itemMinutes 
+                    });
+                } else if (!isCompleted && itemMinutes >= currentMinutes) {
+                    // Upcoming
+                    if (upNext.length < 3) {
+                        upNext.push({ ...item, index });
+                    }
+                }
+            });
+            
+            // Sort overdue by most late first (descending minutes late)
+            overdue.sort((a, b) => b.minutesLate - a.minutesLate);
+            
+            // Limit to top 3 most late items
+            const displayedOverdue = overdue.slice(0, 3);
+            const remainingOverdue = overdue.length - displayedOverdue.length;
+            
+            // Render overdue section
+            const overdueSection = document.getElementById('overdueSection');
+            const overdueList = document.getElementById('overdueList');
+            const overdueCount = document.getElementById('overdueCount');
+            
+            if (overdue.length > 0) {
+                overdueSection.style.display = 'block';
+                
+                // Show total count with "+X more" if needed
+                if (remainingOverdue > 0) {
+                    overdueCount.textContent = `${displayedOverdue.length} (+${remainingOverdue} more)`;
+                } else {
+                    overdueCount.textContent = overdue.length;
+                }
+                
+                overdueList.innerHTML = '';
+                
+                displayedOverdue.forEach(item => {
+                    const el = createOverviewItem(item, todayStr, true);
+                    overdueList.appendChild(el);
+                });
+            } else {
+                overdueSection.style.display = 'none';
+            }
+            
+            // Render up next section
+            const upNextList = document.getElementById('upNextList');
+            const upNextCount = document.getElementById('upNextCount');
+            
+            if (upNext.length > 0) {
+                upNextCount.textContent = upNext.length;
+                upNextList.innerHTML = '';
+                
+                upNext.forEach(item => {
+                    const el = createOverviewItem(item, todayStr, false);
+                    upNextList.appendChild(el);
+                });
+            } else {
+                upNextList.innerHTML = '<div class="overview-empty">All caught up! 🎉</div>';
+                upNextCount.textContent = '0';
+            }
+        }
+
+        function parseTimeToMinutes(timeStr) {
+            // Parse "8:00 AM" or "12:30 PM" to minutes since midnight
+            const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (!match) return null;
+            
+            let hours = parseInt(match[1]);
+            const minutes = parseInt(match[2]);
+            const period = match[3].toUpperCase();
+            
+            if (period === 'PM' && hours !== 12) hours += 12;
+            if (period === 'AM' && hours === 12) hours = 0;
+            
+            return hours * 60 + minutes;
+        }
+
+        function isScheduleItemCompleted(habitText, data) {
+            const habitLower = habitText.toLowerCase();
+            
+            // Check if any tracked habit is completed
+            if (habitLower.includes('dead hang') && data['deadhang']?.completed) return true;
+            if (habitLower.includes('workout') && data['workout']?.completed) return true;
+            if (habitLower.includes('climbing') && data['climbing']?.completed) return true;
+            if (habitLower.includes('golf') && data['golf']?.completed) return true;
+            if (habitLower.includes('yoga') && data['yoga']?.completed) return true;
+            if (habitLower.includes('beard oil') && data['beardoil']?.completed) return true;
+            if (habitLower.includes('microneedling') && data['microneedling']?.completed) return true;
+            if (habitLower.includes('hair styling') && data['hairstyle']?.completed) return true;
+            if (habitLower.includes('manscaping') && data['manscaping']?.completed) return true;
+            if (habitLower.includes('meal 1') && data['meal1']?.completed) return true;
+            if (habitLower.includes('meal 2') && data['meal2']?.completed) return true;
+            if (habitLower.includes('meal 3') && data['meal3']?.completed) return true;
+            if (habitLower.includes('meal 4') && data['meal4']?.completed) return true;
+            if (habitLower.includes('meal 5') && data['meal5']?.completed) return true;
+            if (habitLower.includes('morning supplements') && data['supplements_am']?.completed) return true;
+            if (habitLower.includes('pre-workout') && data['supplements_pre']?.completed) return true;
+            if (habitLower.includes('post-workout') && data['supplements_post']?.completed) return true;
+            if (habitLower.includes('evening supplements') && data['supplements_pm']?.completed) return true;
+            
+            return false;
+        }
+
+        function createOverviewItem(item, dateStr, isOverdue) {
+            const el = document.createElement('div');
+            el.className = 'overview-item' + (isOverdue ? ' overdue' : '');
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'overview-checkbox';
+            checkbox.checked = false;
+            checkbox.onchange = (e) => {
+                quickCompleteHabit(item.habit, dateStr);
+                updateTodayOverview();
+                renderCalendar();
+            };
+            
+            const time = document.createElement('div');
+            time.className = 'overview-time';
+            time.textContent = item.time;
+            
+            const habit = document.createElement('div');
+            habit.className = 'overview-habit';
+            habit.textContent = item.habit;
+            
+            el.appendChild(checkbox);
+            el.appendChild(time);
+            el.appendChild(habit);
+            
+            return el;
+        }
+
+        function quickCompleteHabit(habitText, dateStr) {
+            const habitLower = habitText.toLowerCase();
+            const data = getData(dateStr);
+            
+            // Map schedule text to habit IDs and mark as completed
+            if (habitLower.includes('dead hang')) {
+                if (!data['deadhang']) data['deadhang'] = { completed: false, notes: '' };
+                data['deadhang'].completed = true;
+            }
+            if (habitLower.includes('workout')) {
+                if (!data['workout']) data['workout'] = { completed: false, notes: '' };
+                data['workout'].completed = true;
+            }
+            if (habitLower.includes('climbing')) {
+                if (!data['climbing']) data['climbing'] = { completed: false, notes: '' };
+                data['climbing'].completed = true;
+            }
+            if (habitLower.includes('golf')) {
+                if (!data['golf']) data['golf'] = { completed: false, notes: '' };
+                data['golf'].completed = true;
+            }
+            if (habitLower.includes('yoga')) {
+                if (!data['yoga']) data['yoga'] = { completed: false, notes: '' };
+                data['yoga'].completed = true;
+            }
+            if (habitLower.includes('beard oil')) {
+                if (!data['beardoil']) data['beardoil'] = { completed: false, notes: '' };
+                data['beardoil'].completed = true;
+            }
+            if (habitLower.includes('microneedling')) {
+                if (!data['microneedling']) data['microneedling'] = { completed: false, notes: '' };
+                data['microneedling'].completed = true;
+            }
+            if (habitLower.includes('hair styling')) {
+                if (!data['hairstyle']) data['hairstyle'] = { completed: false, notes: '' };
+                data['hairstyle'].completed = true;
+            }
+            if (habitLower.includes('manscaping')) {
+                if (!data['manscaping']) data['manscaping'] = { completed: false, notes: '' };
+                data['manscaping'].completed = true;
+            }
+            if (habitLower.includes('meal 1')) {
+                if (!data['meal1']) data['meal1'] = { completed: false, notes: '' };
+                data['meal1'].completed = true;
+            }
+            if (habitLower.includes('meal 2')) {
+                if (!data['meal2']) data['meal2'] = { completed: false, notes: '' };
+                data['meal2'].completed = true;
+            }
+            if (habitLower.includes('meal 3')) {
+                if (!data['meal3']) data['meal3'] = { completed: false, notes: '' };
+                data['meal3'].completed = true;
+            }
+            if (habitLower.includes('meal 4')) {
+                if (!data['meal4']) data['meal4'] = { completed: false, notes: '' };
+                data['meal4'].completed = true;
+            }
+            if (habitLower.includes('meal 5')) {
+                if (!data['meal5']) data['meal5'] = { completed: false, notes: '' };
+                data['meal5'].completed = true;
+            }
+            if (habitLower.includes('morning supplements')) {
+                if (!data['supplements_am']) data['supplements_am'] = { completed: false, notes: '' };
+                data['supplements_am'].completed = true;
+            }
+            if (habitLower.includes('pre-workout')) {
+                if (!data['supplements_pre']) data['supplements_pre'] = { completed: false, notes: '' };
+                data['supplements_pre'].completed = true;
+            }
+            if (habitLower.includes('post-workout')) {
+                if (!data['supplements_post']) data['supplements_post'] = { completed: false, notes: '' };
+                data['supplements_post'].completed = true;
+            }
+            if (habitLower.includes('evening supplements')) {
+                if (!data['supplements_pm']) data['supplements_pm'] = { completed: false, notes: '' };
+                data['supplements_pm'].completed = true;
+            }
+            
+            setData(dateStr, data);
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            const monthDisplay = document.getElementById('currentMonth');
+            
+            calendar.innerHTML = '';
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            monthDisplay.textContent = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            daysOfWeek.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                calendar.appendChild(header);
+            });
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell empty';
+                calendar.appendChild(emptyCell);
+            }
+            
+            const today = new Date();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                
+                const dateObj = new Date(year, month, day);
+                const dateStr = dateObj.toISOString().split('T')[0];
+                
+                if (dateObj.toDateString() === today.toDateString()) {
+                    cell.classList.add('today');
+                }
+                
+                if (selectedDate && dateStr === selectedDate) {
+                    cell.classList.add('selected');
+                }
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                cell.appendChild(dayNumber);
+                
+                const completionIndicator = document.createElement('div');
+                completionIndicator.className = 'completion-indicator';
+                
+                const data = getData(dateStr);
+                let completed = 0;
+                habits.forEach(habit => {
+                    const dot = document.createElement('div');
+                    dot.className = 'completion-dot';
+                    if (data[habit.id]?.completed) {
+                        dot.classList.add('completed');
+                        completed++;
+                    }
+                    completionIndicator.appendChild(dot);
+                });
+                
+                cell.appendChild(completionIndicator);
+                
+                cell.onclick = () => selectDate(dateStr);
+                calendar.appendChild(cell);
+            }
+            
+            updateTodayOverview();
+        }
+
+        function selectDate(dateStr) {
+            selectedDate = dateStr;
+            renderCalendar();
+            renderHabitList();
+        }
+
+        function renderHabitList() {
+            const habitList = document.getElementById('habitList');
+            const scheduleView = document.getElementById('scheduleView');
+            const selectedDateDisplay = document.getElementById('selectedDate');
+            const viewToggle = document.getElementById('viewToggle');
+            
+            if (!selectedDate) {
+                habitList.innerHTML = '<p>Select a date from the calendar above</p>';
+                scheduleView.innerHTML = '';
+                viewToggle.style.display = 'none';
+                return;
+            }
+            
+            viewToggle.style.display = 'flex';
+            
+            const date = new Date(selectedDate + 'T12:00:00');
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+            selectedDateDisplay.textContent = date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            habitList.innerHTML = '';
+            
+            const data = getData(selectedDate);
+            
+            habits.forEach(habit => {
+                const habitData = data[habit.id] || { completed: false, notes: '' };
+                
+                const item = document.createElement('div');
+                item.className = 'habit-item';
+                
+                const header = document.createElement('div');
+                header.className = 'habit-header';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'habit-checkbox';
+                checkbox.checked = habitData.completed;
+                checkbox.onchange = (e) => {
+                    updateHabitStatus(habit.id, e.target.checked);
+                };
+                
+                const name = document.createElement('span');
+                name.className = 'habit-name';
+                name.textContent = habit.name;
+                
+                const category = document.createElement('span');
+                category.className = 'habit-category';
+                category.textContent = habit.category;
+                
+                header.appendChild(checkbox);
+                header.appendChild(name);
+                header.appendChild(category);
+                
+                const notes = document.createElement('textarea');
+                notes.className = 'habit-notes';
+                notes.placeholder = 'Add notes (workout details, nutrition timing, grooming notes, etc.)...';
+                notes.value = habitData.notes;
+                notes.oninput = (e) => {
+                    updateHabitNotes(habit.id, e.target.value);
+                };
+                
+                item.appendChild(header);
+                item.appendChild(notes);
+                habitList.appendChild(item);
+            });
+
+            // Render schedule view
+            renderScheduleView(dayName);
+        }
+
+        function renderScheduleView(dayName) {
+            const scheduleView = document.getElementById('scheduleView');
+            scheduleView.innerHTML = '';
+
+            const schedule = scheduleByDay[dayName];
+            if (!schedule) {
+                scheduleView.innerHTML = '<p>No schedule available for this day</p>';
+                return;
+            }
+
+            const timeline = document.createElement('div');
+            timeline.className = 'schedule-timeline';
+
+            const data = getData(selectedDate);
+
+            schedule.forEach(item => {
+                const scheduleItem = document.createElement('div');
+                scheduleItem.className = 'schedule-item';
+
+                // Check if this schedule item corresponds to a tracked habit
+                let isCompleted = false;
+                const habitLower = item.habit.toLowerCase();
+                if (habitLower.includes('dead hang') && data['deadhang']?.completed) isCompleted = true;
+                if (habitLower.includes('workout') && data['workout']?.completed) isCompleted = true;
+                if (habitLower.includes('climbing') && data['climbing']?.completed) isCompleted = true;
+                if (habitLower.includes('golf') && data['golf']?.completed) isCompleted = true;
+                if (habitLower.includes('yoga') && data['yoga']?.completed) isCompleted = true;
+                if (habitLower.includes('beard oil') && data['beardoil']?.completed) isCompleted = true;
+                if (habitLower.includes('microneedling') && data['microneedling']?.completed) isCompleted = true;
+                if (habitLower.includes('hair styling') && data['hairstyle']?.completed) isCompleted = true;
+                if (habitLower.includes('manscaping') && data['manscaping']?.completed) isCompleted = true;
+                if (habitLower.includes('meal 1') && data['meal1']?.completed) isCompleted = true;
+                if (habitLower.includes('meal 2') && data['meal2']?.completed) isCompleted = true;
+                if (habitLower.includes('meal 3') && data['meal3']?.completed) isCompleted = true;
+                if (habitLower.includes('meal 4') && data['meal4']?.completed) isCompleted = true;
+                if (habitLower.includes('meal 5') && data['meal5']?.completed) isCompleted = true;
+                if (habitLower.includes('morning supplements') && data['supplements_am']?.completed) isCompleted = true;
+                if (habitLower.includes('evening supplements') && data['supplements_pm']?.completed) isCompleted = true;
+
+                if (isCompleted) {
+                    scheduleItem.classList.add('completed');
+                }
+
+                const time = document.createElement('div');
+                time.className = 'schedule-time';
+                time.textContent = item.time;
+
+                const habit = document.createElement('div');
+                habit.className = 'schedule-habit';
+                habit.textContent = item.habit;
+
+                scheduleItem.appendChild(time);
+                scheduleItem.appendChild(habit);
+                timeline.appendChild(scheduleItem);
+            });
+
+            scheduleView.appendChild(timeline);
+        }
+
+        function showHabitView() {
+            document.getElementById('habitList').style.display = 'grid';
+            document.getElementById('scheduleView').style.display = 'none';
+            document.getElementById('habitViewBtn').classList.add('active');
+            document.getElementById('scheduleViewBtn').classList.remove('active');
+        }
+
+        function showScheduleView() {
+            document.getElementById('habitList').style.display = 'none';
+            document.getElementById('scheduleView').style.display = 'block';
+            document.getElementById('scheduleView').classList.add('active');
+            document.getElementById('habitViewBtn').classList.remove('active');
+            document.getElementById('scheduleViewBtn').classList.add('active');
+        }
+
+        // Settings Panel Management
+        function openSettings() {
+            document.getElementById('settingsPanel').classList.add('active');
+            renderCategoryList();
+            renderHabitEditor();
+            renderScheduleEditor();
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsPanel').classList.remove('active');
+            // Refresh the main view in case habits or schedule changed
+            renderCalendar();
+            if (selectedDate) {
+                renderHabitList();
+            }
+        }
+
+        // Category CRUD Operations
+        function renderCategoryList() {
+            const container = document.getElementById('categoryList');
+            container.innerHTML = '';
+
+            categories.forEach((category, index) => {
+                const item = document.createElement('div');
+                item.className = 'category-item';
+
+                const badge = document.createElement('div');
+                badge.className = 'category-badge';
+                badge.textContent = category;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'category-input';
+                input.value = category;
+                input.onchange = (e) => updateCategory(index, e.target.value);
+
+                const usage = document.createElement('div');
+                usage.className = 'category-usage';
+                const count = habits.filter(h => h.category === category).length;
+                usage.textContent = `${count} habit${count !== 1 ? 's' : ''}`;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-delete-category';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.onclick = () => deleteCategory(index);
+
+                item.appendChild(badge);
+                item.appendChild(input);
+                item.appendChild(usage);
+                item.appendChild(deleteBtn);
+                container.appendChild(item);
+            });
+        }
+
+        function updateCategory(index, newName) {
+            if (!newName.trim()) {
+                alert('Category name cannot be empty');
+                renderCategoryList();
+                return;
+            }
+
+            const oldName = categories[index];
+            
+            // Check for duplicates
+            if (categories.some((cat, i) => i !== index && cat.toLowerCase() === newName.toLowerCase())) {
+                alert('A category with this name already exists');
+                renderCategoryList();
+                return;
+            }
+
+            // Update category name
+            categories[index] = newName;
+
+            // Update all habits using this category
+            habits.forEach(habit => {
+                if (habit.category === oldName) {
+                    habit.category = newName;
+                }
+            });
+
+            saveCategories();
+            saveHabits();
+            renderCategoryList();
+            renderHabitEditor();
+        }
+
+        function deleteCategory(index) {
+            const categoryName = categories[index];
+            const affectedHabits = habits.filter(h => h.category === categoryName);
+            
+            if (affectedHabits.length > 0) {
+                const confirmMsg = `Delete "${categoryName}"? ${affectedHabits.length} habit(s) will be changed to "Uncategorized":\n\n` +
+                    affectedHabits.map(h => `• ${h.name}`).join('\n');
+                
+                if (!confirm(confirmMsg)) {
+                    return;
+                }
+
+                // Update affected habits to "Uncategorized"
+                habits.forEach(habit => {
+                    if (habit.category === categoryName) {
+                        habit.category = 'Uncategorized';
+                    }
+                });
+
+                // Add "Uncategorized" if it doesn't exist
+                if (!categories.includes('Uncategorized')) {
+                    categories.push('Uncategorized');
+                }
+
+                saveHabits();
+            } else {
+                if (!confirm(`Delete category "${categoryName}"?`)) {
+                    return;
+                }
+            }
+
+            categories.splice(index, 1);
+            saveCategories();
+            renderCategoryList();
+            renderHabitEditor();
+        }
+
+        function addNewCategory() {
+            const newName = prompt('Enter new category name:');
+            
+            if (!newName || !newName.trim()) {
+                return;
+            }
+
+            const trimmedName = newName.trim();
+
+            // Check for duplicates
+            if (categories.some(cat => cat.toLowerCase() === trimmedName.toLowerCase())) {
+                alert('A category with this name already exists');
+                return;
+            }
+
+            categories.push(trimmedName);
+            saveCategories();
+            renderCategoryList();
+            renderHabitEditor();
+        }
+
+        function saveCategories() {
+            localStorage.setItem('custom_categories', JSON.stringify(categories));
+        }
+
+        function loadCategories() {
+            const saved = localStorage.getItem('custom_categories');
+            if (saved) {
+                categories = JSON.parse(saved);
+            }
+        }
+
+        // Habit CRUD Operations
+        function renderHabitEditor() {
+            const container = document.getElementById('habitEditorList');
+            container.innerHTML = '';
+
+            habits.forEach((habit, index) => {
+                const item = document.createElement('div');
+                item.className = 'habit-edit-item';
+
+                const header = document.createElement('div');
+                header.className = 'habit-edit-header';
+
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'habit-edit-input';
+                nameInput.value = habit.name;
+                nameInput.onchange = (e) => updateHabitName(index, e.target.value);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-delete-habit';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.onclick = () => deleteHabit(index);
+
+                header.appendChild(nameInput);
+                header.appendChild(deleteBtn);
+
+                const categorySelect = document.createElement('select');
+                categorySelect.className = 'habit-edit-category';
+                
+                // Use dynamic categories from global array
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    if (cat === habit.category) option.selected = true;
+                    categorySelect.appendChild(option);
+                });
+                
+                categorySelect.onchange = (e) => updateHabitCategory(index, e.target.value);
+
+                item.appendChild(header);
+                item.appendChild(categorySelect);
+                container.appendChild(item);
+            });
+        }
+
+        function updateHabitName(index, newName) {
+            habits[index].name = newName;
+            saveHabits();
+        }
+
+        function updateHabitCategory(index, newCategory) {
+            habits[index].category = newCategory;
+            saveHabits();
+        }
+
+        function deleteHabit(index) {
+            if (confirm(`Delete "${habits[index].name}"? This will remove it from all dates.`)) {
+                habits.splice(index, 1);
+                saveHabits();
+                renderHabitEditor();
+            }
+        }
+
+        function addNewHabit() {
+            const newId = 'habit_' + Date.now();
+            habits.push({
+                id: newId,
+                name: 'New Habit',
+                category: 'Fitness',
+                schedule: true
+            });
+            saveHabits();
+            renderHabitEditor();
+        }
+
+        function saveHabits() {
+            localStorage.setItem('custom_habits', JSON.stringify(habits));
+        }
+
+        function loadHabits() {
+            const saved = localStorage.getItem('custom_habits');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Merge with defaults, keeping custom ones
+                habits.length = 0;
+                habits.push(...parsed);
+            }
+        }
+
+        // Schedule CRUD Operations
+        function renderScheduleEditor() {
+            const day = document.getElementById('scheduleEditDay').value;
+            const container = document.getElementById('scheduleEditorList');
+            container.innerHTML = '';
+
+            const schedule = scheduleByDay[day] || [];
+
+            schedule.forEach((item, index) => {
+                const editItem = document.createElement('div');
+                editItem.className = 'schedule-edit-item';
+
+                const row = document.createElement('div');
+                row.className = 'schedule-edit-row';
+
+                const timeInput = document.createElement('input');
+                timeInput.type = 'text';
+                timeInput.className = 'time-input';
+                timeInput.value = item.time;
+                timeInput.placeholder = '8:00 AM';
+                timeInput.onchange = (e) => updateScheduleTime(day, index, e.target.value);
+
+                const habitInput = document.createElement('input');
+                habitInput.type = 'text';
+                habitInput.className = 'habit-input';
+                habitInput.value = item.habit;
+                habitInput.onchange = (e) => updateScheduleHabit(day, index, e.target.value);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-delete-schedule';
+                deleteBtn.textContent = 'X';
+                deleteBtn.onclick = () => deleteScheduleItem(day, index);
+
+                row.appendChild(timeInput);
+                row.appendChild(habitInput);
+                row.appendChild(deleteBtn);
+
+                editItem.appendChild(row);
+                container.appendChild(editItem);
+            });
+        }
+
+        function updateScheduleTime(day, index, newTime) {
+            scheduleByDay[day][index].time = newTime;
+            saveSchedule();
+        }
+
+        function updateScheduleHabit(day, index, newHabit) {
+            scheduleByDay[day][index].habit = newHabit;
+            saveSchedule();
+        }
+
+        function deleteScheduleItem(day, index) {
+            scheduleByDay[day].splice(index, 1);
+            saveSchedule();
+            renderScheduleEditor();
+        }
+
+        function addNewScheduleItem() {
+            const day = document.getElementById('scheduleEditDay').value;
+            if (!scheduleByDay[day]) {
+                scheduleByDay[day] = [];
+            }
+            scheduleByDay[day].push({
+                time: '12:00 PM',
+                habit: 'New Activity'
+            });
+            saveSchedule();
+            renderScheduleEditor();
+        }
+
+        function saveSchedule() {
+            localStorage.setItem('custom_schedule', JSON.stringify(scheduleByDay));
+        }
+
+        function loadSchedule() {
+            const saved = localStorage.getItem('custom_schedule');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                Object.keys(parsed).forEach(day => {
+                    scheduleByDay[day] = parsed[day];
+                });
+            }
+        }
+
+        // Data Management
+        function viewAllData() {
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                allData[key] = localStorage.getItem(key);
+            }
+            
+            document.getElementById('dataViewContent').textContent = JSON.stringify(allData, null, 2);
+            document.getElementById('dataViewModal').classList.add('active');
+        }
+
+        function closeDataView() {
+            document.getElementById('dataViewModal').classList.remove('active');
+        }
+
+        function getData(dateStr) {
+            const data = localStorage.getItem(`habit_${dateStr}`);
+            return data ? JSON.parse(data) : {};
+        }
+
+        function setData(dateStr, data) {
+            localStorage.setItem(`habit_${dateStr}`, JSON.stringify(data));
+            updateStats();
+            updateTodayOverview();
+        }
+
+        function updateHabitStatus(habitId, completed) {
+            const data = getData(selectedDate);
+            if (!data[habitId]) {
+                data[habitId] = { completed: false, notes: '' };
+            }
+            data[habitId].completed = completed;
+            setData(selectedDate, data);
+            renderCalendar();
+        }
+
+        function updateHabitNotes(habitId, notes) {
+            const data = getData(selectedDate);
+            if (!data[habitId]) {
+                data[habitId] = { completed: false, notes: '' };
+            }
+            data[habitId].notes = notes;
+            setData(selectedDate, data);
+        }
+
+        function updateStats() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            let totalCompleted = 0;
+            let totalPossible = 0;
+            let currentStreakDays = 0;
+            let checkingStreak = true;
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            for (let day = daysInMonth; day >= 1; day--) {
+                const dateObj = new Date(year, month, day);
+                dateObj.setHours(0, 0, 0, 0);
+                
+                if (dateObj > today) continue;
+                
+                const dateStr = dateObj.toISOString().split('T')[0];
+                const data = getData(dateStr);
+                
+                let dayCompleted = 0;
+                habits.forEach(habit => {
+                    if (data[habit.id]?.completed) {
+                        totalCompleted++;
+                        dayCompleted++;
+                    }
+                });
+                
+                totalPossible += habits.length;
+                
+                if (checkingStreak) {
+                    if (dayCompleted >= habits.length * 0.7) {
+                        currentStreakDays++;
+                    } else {
+                        checkingStreak = false;
+                    }
+                }
+            }
+            
+            const completion = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+            
+            document.getElementById('monthCompletion').textContent = completion + '%';
+            document.getElementById('currentStreak').textContent = currentStreakDays;
+            document.getElementById('totalHabits').textContent = totalCompleted;
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+            updateStats();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+            updateStats();
+        }
+
+        function exportData() {
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('habit_')) {
+                    allData[key] = localStorage.getItem(key);
+                }
+            }
+            
+            const dataStr = JSON.stringify(allData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `habit-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    Object.keys(data).forEach(key => {
+                        localStorage.setItem(key, data[key]);
+                    });
+                    renderCalendar();
+                    renderHabitList();
+                    updateStats();
+                    alert('Data imported successfully!');
+                } catch (error) {
+                    alert('Error importing data. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function confirmClear() {
+            document.getElementById('clearModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('clearModal').classList.remove('active');
+        }
+
+        function clearAllData() {
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('habit_')) {
+                    keys.push(key);
+                }
+            }
+            keys.forEach(key => localStorage.removeItem(key));
+            
+            closeModal();
+            renderCalendar();
+            renderHabitList();
+            updateStats();
+            alert('All data cleared successfully!');
+        }
+
+        initializeTracker();
+    </script>
+</body>
+</html>
