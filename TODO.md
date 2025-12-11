@@ -12,3 +12,4 @@
 11. also create a habit for doing laundry weekly. 
 12. create a habit for reviewing financials weekly. 
 13. optimize my habit schedule with all the new habits I've requested
+14. in my initial commit and push to github, I included TODO.md. I want to remove this from the remote branch and ignore it from future commits
