@@ -15,3 +15,5 @@
 14. in my initial commit and push to github, I included TODO.md. I want to remove this from the remote branch and ignore it from future commits
 15. All my habit and schedule information should be hidden from the public and separate from the main html. Separate all info into a private file the habit tracker web page can reference for seeding all my initial habits and schedule details, once my local data is seeded, I can manipulate it freely on my iphone through the web interface. 
 16. password protect this entire project so I can expose it to the public while still being the only one to access my habit and schedule information. it can be a simple single admin password as only I am the only user. 
+17. integrate shaving my face weekly into my habits and schedule. 
+18. I like my body hair as long as possible and I have guards up to 16mm. Adjust the length I trim each area of my body to be the maximum while still being attractive and hygienic. 
